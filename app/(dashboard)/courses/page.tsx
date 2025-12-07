@@ -1,44 +1,46 @@
 'use client';
 
+import { useCourses } from '@/features/courses/hooks/use-courses';
+import { DataTable } from '@/components/tables/data-table/data-table';
+import { coursesColumns } from '@/components/tables/columns/courses-columns';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import Link from 'next/link';
+import { TableSkeleton } from '@/components/shared/loading-skeleton';
 import { PermissionGate } from '@/components/shared/permission-gate';
 import { Permission } from '@/lib/constants/permissions';
-import { Card, CardContent } from '@/components/ui/card';
 
 export default function CoursesPage() {
+  const { data, isLoading } = useCourses();
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Courses</h1>
+          <h1 className="text-3xl font-bold tracking-tight">الدورات</h1>
           <p className="text-muted-foreground">
-            Manage your academy&apos;s course catalog
+            إدارة كتالوج دورات الأكاديمية
           </p>
         </div>
         <PermissionGate permission={Permission.COURSES_CREATE}>
-          <Button asChild>
-            <Link href="/courses/new">
-              <Plus className="mr-2 h-4 w-4" />
-              Create Course
-            </Link>
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            إنشاء دورة
           </Button>
         </PermissionGate>
       </div>
 
-      {/* Placeholder */}
-      <Card>
-        <CardContent className="flex min-h-[400px] items-center justify-center">
-          <div className="text-center">
-            <h3 className="mb-2 text-lg font-semibold">Courses Management</h3>
-            <p className="text-sm text-muted-foreground">
-              Full course management with curriculum builder coming soon
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Table */}
+      {isLoading ? (
+        <TableSkeleton />
+      ) : (
+        <DataTable
+          columns={coursesColumns}
+          data={data?.data || []}
+          searchKey="title"
+          searchPlaceholder="البحث عن دورة..."
+        />
+      )}
     </div>
   );
 }

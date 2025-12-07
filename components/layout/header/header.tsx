@@ -1,12 +1,10 @@
 'use client';
 
-import { Bell, Menu, Search } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { useUiStore } from '@/store';
 import { cn } from '@/lib/utils';
 import { Breadcrumbs } from './breadcrumbs';
 import { NotificationsDropdown } from './notifications-dropdown';
+import { SearchCommand } from './search-command';
 
 export function Header() {
   const { sidebarCollapsed } = useUiStore();
@@ -24,16 +22,8 @@ export function Header() {
       {/* Spacer */}
       <div className="flex-1" />
 
-      {/* Search */}
-      <div className="relative hidden md:block">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          type="search"
-          placeholder="Search... (⌘K)"
-          className="w-64 pl-8"
-          readOnly
-        />
-      </div>
+      {/* Search Command */}
+      <SearchCommand />
 
       {/* Notifications */}
       <NotificationsDropdown />
