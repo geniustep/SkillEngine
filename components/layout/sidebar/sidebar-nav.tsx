@@ -31,7 +31,7 @@ function NavItemComponent({
 }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(
-    item.children?.some((child) => child.href === pathname)
+    item.children?.some((child) => child.href === pathname) ?? false
   );
 
   const hasChildren = item.children && item.children.length > 0;

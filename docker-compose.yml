@@ -1,0 +1,96 @@
+# ==========================================
+# SkillEngine - Docker Compose
+# Domain: skill.geniura.com
+# ==========================================
+
+version: '3.8'
+
+services:
+  # ==========================================
+  # SkillEngine Frontend Application
+  # ==========================================
+  skillengine:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: skillengine-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_APP_NAME=SkillEngine
+      - NEXT_PUBLIC_APP_URL=https://skill.geniura.com
+      - NEXT_PUBLIC_API_URL=https://skill.geniura.com/api/v1
+      - NEXTAUTH_URL=https://skill.geniura.com
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - KEYCLOAK_URL=${KEYCLOAK_URL}
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM}
+      - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID}
+      - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
+    networks:
+      - skillengine-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.skillengine.rule=Host(`skill.geniura.com`)"
+      - "traefik.http.routers.skillengine.entrypoints=websecure"
+      - "traefik.http.routers.skillengine.tls.certresolver=letsencrypt"
+      - "traefik.http.services.skillengine.loadbalancer.server.port=3000"
+
+  # ==========================================
+  # Nginx Reverse Proxy (Alternative to Traefik)
+  # ==========================================
+  nginx:
+    image: nginx:alpine
+    container_name: skillengine-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      - skillengine
+    networks:
+      - skillengine-network
+    profiles:
+      - nginx
+
+  # ==========================================
+  # Redis Cache (Optional)
+  # ==========================================
+  redis:
+    image: redis:7-alpine
+    container_name: skillengine-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - skillengine-network
+    profiles:
+      - cache
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  skillengine-network:
+    driver: bridge
+    name: skillengine-network
+
+volumes:
+  redis-data:
+    driver: local

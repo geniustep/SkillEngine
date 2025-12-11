@@ -5,8 +5,8 @@ export const routes = {
   unauthorized: '/unauthorized',
 
   // Dashboard
-  home: '/',
-  dashboard: '/',
+  home: '/dashboard',
+  dashboard: '/dashboard',
 
   // Analytics
   analytics: {

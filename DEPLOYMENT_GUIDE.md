@@ -1,4 +1,6 @@
-# 🚀 NextAdmin LMS - Deployment & Quick Start Guide
+# 🚀 SkillEngine - Geniura LMS Deployment & Quick Start Guide
+
+**Production Domain:** https://skill.geniura.com
 
 ## Current Status: Ready for Development ✅
 
@@ -43,11 +45,28 @@ cp .env.example .env.local
 ```
 
 Edit `.env.local`:
+
+**For Production (skill.geniura.com):**
+```env
+NEXT_PUBLIC_APP_NAME=SkillEngine
+NEXT_PUBLIC_APP_URL=https://skill.geniura.com
+NEXT_PUBLIC_API_URL=https://skill.geniura.com/api/v1
+
+# Keycloak SSO
+KEYCLOAK_URL=https://auth.geniura.com
+KEYCLOAK_REALM=skillengine
+KEYCLOAK_CLIENT_ID=skillengine-admin
+KEYCLOAK_CLIENT_SECRET=your-keycloak-secret
+
+# NextAuth
+NEXTAUTH_URL=https://skill.geniura.com
+NEXTAUTH_SECRET=your-generated-secret-here
+```
+
+**For Local Development:**
 ```env
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
-
-# For testing without Keycloak, you can use development mode
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=your-generated-secret-here
 ```
@@ -122,10 +141,10 @@ const mockLogin = () => {
 };
 ```
 
-### With Your API Backend
+### With Geniura API Backend
 Update `.env.local`:
 ```env
-NEXT_PUBLIC_API_URL=https://your-api.com/api/v1
+NEXT_PUBLIC_API_URL=https://skill.geniura.com/api/v1
 ```
 
 The API client is already configured to:

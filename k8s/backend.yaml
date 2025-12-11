@@ -1,0 +1,238 @@
+# ==========================================
+# SkillEngine Backend API Deployment
+# With Autoscaling (HPA)
+# ==========================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: skillengine-api-data-pvc
+  namespace: skillengine
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: do-block-storage
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: skillengine-api
+  namespace: skillengine
+  labels:
+    app: skillengine-api
+    version: v1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: skillengine-api
+  template:
+    metadata:
+      labels:
+        app: skillengine-api
+        version: v1
+    spec:
+      containers:
+      - name: skillengine-api
+        image: skillengine-api:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        # From ConfigMap
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: skillengine-config
+              key: NODE_ENV
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: skillengine-config
+              key: PORT
+        - name: APP_URL
+          valueFrom:
+            configMapKeyRef:
+              name: skillengine-config
+              key: APP_URL
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: skillengine-config
+              key: REDIS_HOST
+        - name: REDIS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: skillengine-config
+              key: REDIS_PORT
+        - name: KEYCLOAK_URL
+          valueFrom:
+            configMapKeyRef:
+              name: skillengine-config
+              key: KEYCLOAK_URL
+        - name: KEYCLOAK_REALM
+          valueFrom:
+            configMapKeyRef:
+              name: skillengine-config
+              key: KEYCLOAK_REALM
+        - name: MINIO_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: skillengine-config
+              key: MINIO_ENDPOINT
+        - name: MINIO_BUCKET
+          valueFrom:
+            configMapKeyRef:
+              name: skillengine-config
+              key: MINIO_BUCKET
+        - name: CORS_ORIGINS
+          valueFrom:
+            configMapKeyRef:
+              name: skillengine-config
+              key: CORS_ORIGINS
+        # From Secrets
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: skillengine-secrets
+              key: DATABASE_URL
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: skillengine-secrets
+              key: JWT_SECRET
+        - name: KEYCLOAK_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: skillengine-secrets
+              key: KEYCLOAK_CLIENT_ID
+        - name: KEYCLOAK_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: skillengine-secrets
+              key: KEYCLOAK_CLIENT_SECRET
+        - name: MINIO_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: skillengine-secrets
+              key: MINIO_ACCESS_KEY
+        - name: MINIO_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: skillengine-secrets
+              key: MINIO_SECRET_KEY
+        - name: DAILY_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: skillengine-secrets
+              key: DAILY_API_KEY
+        - name: PUSHER_APP_ID
+          valueFrom:
+            secretKeyRef:
+              name: skillengine-secrets
+              key: PUSHER_APP_ID
+        - name: PUSHER_KEY
+          valueFrom:
+            secretKeyRef:
+              name: skillengine-secrets
+              key: PUSHER_KEY
+        - name: PUSHER_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: skillengine-secrets
+              key: PUSHER_SECRET
+        volumeMounts:
+        - name: skillengine-api-data
+          mountPath: /app/data
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 40
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 8000
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+      volumes:
+      - name: skillengine-api-data
+        persistentVolumeClaim:
+          claimName: skillengine-api-data-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: skillengine-api
+  namespace: skillengine
+spec:
+  ports:
+  - port: 80
+    targetPort: 8000
+    protocol: TCP
+    name: http
+  selector:
+    app: skillengine-api
+  type: ClusterIP
+---
+# ==========================================
+# Horizontal Pod Autoscaler for Backend API
+# ==========================================
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: skillengine-api-hpa
+  namespace: skillengine
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: skillengine-api
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 30
+      - type: Pods
+        value: 2
+        periodSeconds: 30
+      selectPolicy: Max
+

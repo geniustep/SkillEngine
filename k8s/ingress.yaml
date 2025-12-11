@@ -1,0 +1,42 @@
+# ==========================================
+# SkillEngine Ingress (Traefik)
+# Domain: skill.geniura.com
+# ==========================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: skillengine-ingress
+  namespace: skillengine
+  annotations:
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.tls.certresolver: "letsencrypt"
+    traefik.ingress.kubernetes.io/router.entrypoints: "web,websecure"
+    traefik.ingress.kubernetes.io/router.middlewares: "skillengine-https-redirect@kubernetescrd"
+spec:
+  ingressClassName: traefik
+  rules:
+  # skill.geniura.com - Frontend + API
+  - host: skill.geniura.com
+    http:
+      paths:
+      # API routes
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: skillengine-api
+            port:
+              number: 80
+      # Frontend routes (everything else)
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: skillengine-frontend
+            port:
+              number: 80
+  tls:
+  - hosts:
+    - skill.geniura.com
+    secretName: skillengine-tls
+

@@ -1,0 +1,11 @@
+# ==========================================
+# SkillEngine Kubernetes Namespace
+# ==========================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: skillengine
+  labels:
+    app.kubernetes.io/name: skillengine
+    app.kubernetes.io/part-of: geniura-platform
+

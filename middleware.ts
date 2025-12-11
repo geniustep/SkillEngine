@@ -1,7 +1,6 @@
-export { default } from 'next-auth/middleware';
+// Disable NextAuth middleware - using client-side protection instead
+// export { default } from 'next-auth/middleware';
 
 export const config = {
-  matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|login|unauthorized).*)',
-  ],
+  matcher: [],
 };

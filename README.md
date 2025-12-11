@@ -1,4 +1,6 @@
-# Academy LMS Admin Dashboard
+# SkillEngine - Geniura LMS Admin Dashboard
+
+**Production URL:** https://skill.geniura.com
 
 A comprehensive, modern Learning Management System (LMS) admin dashboard built with Next.js 14, TypeScript, and Tailwind CSS.
 
@@ -119,21 +121,28 @@ Required environment variables:
 
 ```env
 # App
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-NEXT_PUBLIC_APP_NAME=Academy LMS Admin
+NEXT_PUBLIC_APP_URL=https://skill.geniura.com
+NEXT_PUBLIC_APP_NAME=SkillEngine
 
 # API
-NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+NEXT_PUBLIC_API_URL=https://skill.geniura.com/api/v1
 
 # Auth (Keycloak)
-KEYCLOAK_URL=https://your-keycloak.com
-KEYCLOAK_REALM=academy-lms
-KEYCLOAK_CLIENT_ID=admin-dashboard
+KEYCLOAK_URL=https://auth.geniura.com
+KEYCLOAK_REALM=skillengine
+KEYCLOAK_CLIENT_ID=skillengine-admin
 KEYCLOAK_CLIENT_SECRET=your-secret-here
 
 # NextAuth
-NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_URL=https://skill.geniura.com
 NEXTAUTH_SECRET=generate-with-openssl-rand-base64-32
+```
+
+**For Local Development:**
+```env
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+NEXTAUTH_URL=http://localhost:3000
 ```
 
 4. **Run the development server**

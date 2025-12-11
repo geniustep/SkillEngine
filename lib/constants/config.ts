@@ -1,10 +1,10 @@
 export const config = {
   app: {
-    name: process.env.NEXT_PUBLIC_APP_NAME || 'Academy LMS Admin',
-    url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+    name: process.env.NEXT_PUBLIC_APP_NAME || 'SkillEngine',
+    url: process.env.NEXT_PUBLIC_APP_URL || 'https://skill.geniura.com',
   },
   api: {
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1',
+    baseUrl: process.env.NEXT_PUBLIC_API_URL || 'https://skill.geniura.com/api/v1',
     timeout: Number(process.env.NEXT_PUBLIC_API_TIMEOUT) || 30000,
   },
   features: {

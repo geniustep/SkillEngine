@@ -3,7 +3,7 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { Course } from '@/lib/types/course.types';
 import { StatusBadge } from '@/components/shared/status-badge';
-import { formatDate, formatCurrency } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, Eye, Edit, Trash, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { routes } from '@/lib/constants/routes';
 import { Badge } from '@/components/ui/badge';
 
@@ -27,9 +28,11 @@ export const coursesColumns: ColumnDef<Course>[] = [
       return (
         <div className="flex items-center gap-3">
           {course.thumbnail && (
-            <img
+            <Image
               src={course.thumbnail}
               alt={course.title}
+              width={64}
+              height={40}
               className="h-10 w-16 rounded object-cover"
             />
           )}
@@ -64,9 +67,10 @@ export const coursesColumns: ColumnDef<Course>[] = [
         intermediate: 'متوسط',
         advanced: 'متقدم',
       };
+      const level = row.getValue('level') as string;
       return (
         <Badge variant="outline">
-          {levelMap[row.getValue('level')] || row.getValue('level')}
+          {levelMap[level] || level}
         </Badge>
       );
     },

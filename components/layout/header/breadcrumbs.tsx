@@ -2,15 +2,21 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronRight, Home } from 'lucide-react';
+import { ChevronRight, Home, LucideIcon } from 'lucide-react';
 import { routes } from '@/lib/constants/routes';
+
+interface BreadcrumbItem {
+  label: string;
+  href: string;
+  icon?: LucideIcon;
+}
 
 export function Breadcrumbs() {
   const pathname = usePathname();
 
   const segments = pathname.split('/').filter(Boolean);
 
-  const breadcrumbs = [
+  const breadcrumbs: BreadcrumbItem[] = [
     { label: 'Home', href: routes.dashboard, icon: Home },
     ...segments.map((segment, index) => {
       const href = '/' + segments.slice(0, index + 1).join('/');

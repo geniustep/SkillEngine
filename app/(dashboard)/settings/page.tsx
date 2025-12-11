@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Settings as SettingsIcon, Users, Palette, Globe } from 'lucide-react';
 import Link from 'next/link';
 import { routes } from '@/lib/constants/routes';

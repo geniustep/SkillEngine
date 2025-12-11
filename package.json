@@ -12,7 +12,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:e2e": "playwright test",
-    "prepare": "husky install"
+    "prepare": "husky"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.0",
@@ -67,7 +67,7 @@
     "@typescript-eslint/parser": "^7.0.0",
     "@vitejs/plugin-react": "^4.2.0",
     "autoprefixer": "^10.0.0",
-    "eslint": "^8",
+    "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.0",
     "eslint-config-prettier": "^9.1.0",
     "husky": "^9.0.0",

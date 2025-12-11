@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '../hooks/use-auth';
+import { useSession } from 'next-auth/react';
 import { routes } from '@/lib/constants/routes';
 
 interface ProtectedRouteProps {
@@ -14,16 +14,29 @@ export function ProtectedRoute({
   children,
   requireAuth = true,
 }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { status } = useSession();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+  // Track if we've already initiated a redirect to prevent duplicate redirects
+  const hasRedirected = useRef(false);
 
   useEffect(() => {
-    if (!isLoading && requireAuth && !isAuthenticated) {
-      router.push(routes.login);
-    }
-  }, [isAuthenticated, isLoading, requireAuth, router]);
+    setMounted(true);
+  }, []);
 
-  if (isLoading) {
+  useEffect(() => {
+    if (mounted && status === 'unauthenticated' && requireAuth && !hasRedirected.current) {
+      hasRedirected.current = true;
+      router.replace(routes.login);
+    }
+  }, [status, requireAuth, router, mounted]);
+
+  // Don't render anything until mounted (to avoid hydration mismatch)
+  if (!mounted) {
+    return null;
+  }
+
+  if (status === 'loading') {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
@@ -31,7 +44,7 @@ export function ProtectedRoute({
     );
   }
 
-  if (requireAuth && !isAuthenticated) {
+  if (requireAuth && status === 'unauthenticated') {
     return null;
   }
 

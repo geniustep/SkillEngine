@@ -6,7 +6,7 @@ export interface ExtendedUser {
   email: string;
   name: string;
   avatar?: string;
-  role: string;
+  role: RoleValue;
   permissions: string[];
   tenantId: string;
 }
@@ -23,10 +23,10 @@ declare module 'next-auth' {
 
 declare module 'next-auth/jwt' {
   interface JWT {
-    id: string;
-    role: RoleValue;
-    permissions: string[];
-    tenantId: string;
+    id?: string;
+    role?: RoleValue;
+    permissions?: string[];
+    tenantId?: string;
     accessToken?: string;
     refreshToken?: string;
     accessTokenExpires?: number;
