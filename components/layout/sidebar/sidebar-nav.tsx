@@ -10,13 +10,19 @@ import { useState } from 'react';
 
 interface SidebarNavProps {
   collapsed: boolean;
+  onItemClick?: () => void;
 }
 
-export function SidebarNav({ collapsed }: SidebarNavProps) {
+export function SidebarNav({ collapsed, onItemClick }: SidebarNavProps) {
   return (
     <nav className="space-y-1">
       {navigation.map((item) => (
-        <NavItemComponent key={item.title} item={item} collapsed={collapsed} />
+        <NavItemComponent
+          key={item.title}
+          item={item}
+          collapsed={collapsed}
+          onItemClick={onItemClick}
+        />
       ))}
     </nav>
   );
@@ -25,9 +31,11 @@ export function SidebarNav({ collapsed }: SidebarNavProps) {
 function NavItemComponent({
   item,
   collapsed,
+  onItemClick,
 }: {
   item: NavItem;
   collapsed: boolean;
+  onItemClick?: () => void;
 }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(
@@ -47,6 +55,7 @@ function NavItemComponent({
           hasChildren={hasChildren}
           isOpen={isOpen}
           setIsOpen={setIsOpen}
+          onItemClick={onItemClick}
         />
       </PermissionGate>
     );
@@ -60,6 +69,7 @@ function NavItemComponent({
       hasChildren={hasChildren}
       isOpen={isOpen}
       setIsOpen={setIsOpen}
+      onItemClick={onItemClick}
     />
   );
 }
@@ -71,6 +81,7 @@ function NavItemContent({
   hasChildren,
   isOpen,
   setIsOpen,
+  onItemClick,
 }: {
   item: NavItem;
   collapsed: boolean;
@@ -78,6 +89,7 @@ function NavItemContent({
   hasChildren?: boolean;
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
+  onItemClick?: () => void;
 }) {
   const pathname = usePathname();
   const Icon = item.icon;
@@ -95,7 +107,7 @@ function NavItemContent({
           {Icon && <Icon className="h-5 w-5 shrink-0" />}
           {!collapsed && (
             <>
-              <span className="flex-1 text-left">{item.title}</span>
+              <span className="flex-1 text-right">{item.title}</span>
               <ChevronDown
                 className={cn(
                   'h-4 w-4 transition-transform',
@@ -106,13 +118,14 @@ function NavItemContent({
           )}
         </button>
         {!collapsed && isOpen && (
-          <div className="ml-4 mt-1 space-y-1 border-l pl-4">
+          <div className="mr-4 mt-1 space-y-1 border-r pr-4">
             {item.children?.map((child) => {
               const childIsActive = child.href === pathname;
               return (
                 <Link
                   key={child.href}
                   href={child.href || '#'}
+                  onClick={onItemClick}
                   className={cn(
                     'block rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground',
                     childIsActive &&
@@ -132,6 +145,7 @@ function NavItemContent({
   return (
     <Link
       href={item.href || '#'}
+      onClick={onItemClick}
       className={cn(
         'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground',
         isActive && 'bg-accent font-medium text-accent-foreground',
