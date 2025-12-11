@@ -1,19 +1,24 @@
 # ==========================================
-# SkillEngine - Production Dockerfile
+# SkillEngine Backend - Production Dockerfile
 # Multi-stage build for optimized image
-# Domain: skill.geniura.com
 # ==========================================
 
 # Stage 1: Dependencies
 FROM node:20-alpine AS deps
-RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Copy package files
-COPY package.json package-lock.json* ./
+# Install build dependencies for native modules
+RUN apk add --no-cache python3 make g++ openssl
 
-# Install all dependencies (including dev for build)
-RUN npm ci --ignore-scripts && npm cache clean --force
+# Copy package files
+COPY package*.json ./
+COPY prisma ./prisma/
+
+# Install all dependencies (use npm install since package-lock.json may not exist)
+RUN npm install
+
+# Generate Prisma Client
+RUN npx prisma generate
 
 # Stage 2: Builder
 FROM node:20-alpine AS builder
@@ -21,52 +26,41 @@ WORKDIR /app
 
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/package*.json ./
+COPY --from=deps /app/prisma ./prisma
+
+# Copy source code
 COPY . .
-
-# Set environment variables for build
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV NODE_ENV=production
-ENV SKIP_ENV_VALIDATION=1
-
-# Create public directory if it doesn't exist
-RUN mkdir -p public
 
 # Build the application
 RUN npm run build
 
-# Stage 3: Runner (Production)
-FROM node:20-alpine AS runner
+# Stage 3: Production
+FROM node:20-alpine AS production
 WORKDIR /app
 
-# Set environment
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
+# Install runtime dependencies
+RUN apk add --no-cache openssl wget
 
-# Create non-root user for security
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nestjs -u 1001
 
-# Copy necessary files from builder
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-
-# Set correct permissions
-RUN chown -R nextjs:nodejs /app
+# Copy built application
+COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
+COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nestjs:nodejs /app/package*.json ./
+COPY --from=builder --chown=nestjs:nodejs /app/prisma ./prisma
 
 # Switch to non-root user
-USER nextjs
+USER nestjs
 
 # Expose port
-EXPOSE 3000
-
-# Set hostname
-ENV HOSTNAME="0.0.0.0"
-ENV PORT=3000
+EXPOSE 8000
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD wget -q --spider http://localhost:8000/health || exit 1
 
 # Start the application
-CMD ["node", "server.js"]
+CMD ["node", "dist/src/main.js"]
